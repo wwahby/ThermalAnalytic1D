@@ -66,9 +66,12 @@ N1 = np.array([ -dphi(0, a, b_vec[0])/h1 + phi(0, a, b_vec[0]), -dpsi(0, a, b_ve
 N1 = np.append( N1, np.zeros( (1, 2*(num_layers-1) ) )  )
 
 P_core = lambda n, eta, a, b_vec: np.array([phi(eta[n-1], a, b_vec[n-1]), psi(eta[n-1], a, b_vec[n-1]), -phi( eta[n], a, b_vec[n-1] ), -psi( eta[n], a, b_vec[n-1] )])
+Q_core = lambda n, eta, a, b_vec, k_vec: np.array([dphi(eta[n-1], a, b_vec[n-1]), dpsi(eta[n-1], a, b_vec[n-1]), -k_vec[n-1]*dphi( eta[n-1], a, b_vec[n] ), -k_vec[n-1]*dpsi( eta[n-1], a, b_vec[n] )])
 P = lambda n, eta, a, b_vec: np.append( np.append( np.zeros((1, 2*(n-1))), P_core(n, eta, a, b_vec)), np.zeros(( 1, 2*(num_layers - n - 1)) ) )
+Q = lambda n, eta, a, b_vec, k_vec: np.append( np.append( np.zeros((1, 2*(n-1))), Q_core(n, eta, a, b_vec, k_vec)), np.zeros(( 1, 2*(num_layers - n - 1)) ) )
+PM_core = np.array( [dphi(eta_vec[-1], a, b_vec[-1])/hM + phi(eta_vec[-1], a, b_vec[-1]), dpsi( eta_vec[-1], a, b_vec[-1])/hM + psi( eta_vec[-1], a, b_vec[-1])])
+PM = np.append( np.zeros( (1, 2*(num_layers-1)) ), PM_core)
 
-print(np.size(N1))
 
 
 
