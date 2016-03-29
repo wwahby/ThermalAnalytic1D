@@ -29,7 +29,7 @@ dTR = 1
 x_actual = np.cumsum(thickness_actual)
 
 dx = np.diff(x_actual)
-dx = np.insert(dx, x_actual[0], 0)
+dx = np.insert(dx,  0, x_actual[0])
 
 # Construct useful constants
 pdens_m2 = pdens_cm2 * 1e4
