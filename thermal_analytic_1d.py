@@ -63,14 +63,14 @@ dphi = lambda xx, aa, bb: dphi_s.subs( [(a, aa), (b, bb), (x, xx)] )
 dpsi = lambda xx, aa, bb: dpsi_s.subs( [(a, aa), (b, bb), (x, xx)] )
 
 N1 = [ -dphi(0, a, b_vec[0])/h1 + phi(0, a, b_vec[0]), -dpsi(0, a, b_vec[0])/h1 + psi(0, a, b_vec[0]) ]
-N1.extend( [0 for i in range( 2*(num_layers-1) )] )
+N1.extend( [0]*(  2*(num_layers-1) ) )
 
 P_core = lambda n, eta, a, b_vec: [phi(eta[n-1], a, b_vec[n-1]), psi(eta[n-1], a, b_vec[n-1]), -phi( eta[n-1], a, b_vec[n] ), -psi( eta[n-1], a, b_vec[n] )]
 Q_core = lambda n, eta, a, b_vec, k_vec: [dphi(eta[n-1], a, b_vec[n-1]), dpsi(eta[n-1], a, b_vec[n-1]), -k_vec[n-1]*dphi( eta[n-1], a, b_vec[n] ), -k_vec[n-1]*dpsi( eta[n-1], a, b_vec[n] )]
-P = lambda n, eta, a, b_vec: ([0 for i in range(2*(n-1))].extend( P_core(n, eta, a, b_vec))).extend( 0 for i in range(num_layers - n - 1)) 
-Q = lambda n, eta, a, b_vec, k_vec: ([0 for i in range(2*(n-1))].extend( Q_core(n, eta, a, b_vec, k_vec))).extend( 0 for i in range(num_layers - n - 1)) 
+P = lambda n, eta, a, b_vec: [0]*(2*(n-1)) +  P_core(n, eta, a, b_vec) + ([0]*2*(num_layers - n-1)) 
+Q = lambda n, eta, a, b_vec, k_vec: [0]*(2*(n-1)) + Q_core(n, eta, a, b_vec, k_vec) +( [0]*2*(num_layers - n-1)) 
 PM_core = [dphi(eta_vec[-1], a, b_vec[-1])/hM + phi(eta_vec[-1], a, b_vec[-1]), dpsi( eta_vec[-1], a, b_vec[-1])/hM + psi( eta_vec[-1], a, b_vec[-1])]
-PM = [0 for i in range(2*(num_layers-1))].extend(PM_core)
+PM = [0]*(2*(num_layers-1)) + PM_core
 
 PP = [ P(n, eta_vec, a, b_vec) for n in range(1,num_layers)]
 QQ = [ Q(n, eta_vec, a, b_vec, k_vec) for n in range(1,num_layers)]
@@ -82,12 +82,14 @@ for n in range(1,num_layers):
 	A.append(QQ[n-1])
 A.append(PM)
 
-A = np.array(A)
+#A = np.array(A)
 Amat = sym.Matrix(A)
 
 #Adet = Amat.det()
 
-
+#[aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an, ao, ap, aq, ar, at, au, av, aw, ax, ay, az] = sym.symbols(["aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak", "al", "am", "an", "ao", "ap", "aq", "ar", "at", "au", "av", "aw", "ax", "ay", "az"])
+#AA = [ [aa, ab, 0, 0, 0, 0], [ac, ad, ae, af, 0, 0], [ag, ah, ai, aj, 0, 0], [0, 0, ak, al, am, an], [0, 0, ap, aq, ar, at], [0, 0, 0, 0, au, av]]
+#AAmat = sym.Matrix(AA)
 
 
 
