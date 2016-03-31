@@ -75,7 +75,8 @@ A = [A; PM];
 %%
 detA = det(A);
 
-fprintf('Finding roots...\t');
+fprintf('Finding roots...');
+roots_start = cputime;
 
 num_guesses = 3e1;
 min_guess = 0;
@@ -94,8 +95,12 @@ fprintf('\n')
 
 roots_vec = roots_vec(roots_vec > 0);
 roots_vec = unique(roots_vec);
+
+roots_stop = cputime;
+fprintf('\t(%.3g s)\n', roots_stop - roots_start);
 %%
-fprintf('Finding coefficients...\n');
+fprintf('Finding coefficients...');
+coeff_start = cputime;
 null_list = zeros(2*num_layers, length(roots_vec));
 norm_list = zeros(2*num_layers, length(roots_vec));
 for rind = 1:length(roots_vec)
@@ -109,10 +114,12 @@ end
 C_mat = norm_list(1:2:end,:);
 D_mat = norm_list(2:2:end,:);
 
-
+coeff_stop = cputime;
+fprintf('\t(%.3g s)\n', coeff_stop - coeff_start);
 
 %% Construct Phi/Psi vectors
-fprintf('Constructing basis vectors...\n');
+fprintf('Constructing basis vectors...');
+basis_start = cputime;
 phi_vec_base = subs(phi(x,a,b),b,b_vec)';
 psi_vec_base = subs(psi(x,a,b),b,b_vec)';
 
@@ -130,8 +137,12 @@ for rind = 1:length(roots_vec)
     R_vec(:,rind) = subs(R_vec(:,rind), a, roots_vec(rind));
 end
 
+basis_stop = cputime;
+fprintf('\t(%.3g s)\n', basis_stop - basis_start);
+
 %%
-fprintf('Constructing weighting vectors...\n');
+fprintf('Constructing weighting vectors...\t');
+weighting_start = cputime;
 Fvec = cumprod([1, k_vec]);
 wvec = Fvec./b_vec;
 
@@ -147,9 +158,11 @@ for iind = 1:num_layers
     WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
     gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
 end
+weighting_stop = cputime;
+fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
 
 %%
-fprintf('Integrating weighting vectors...\n');
+fprintf('Integrating weighting vectors...');
 xmin_lim = [0 eta_vec(1:end-1)];
 xmax_lim = eta_vec;
 
@@ -179,7 +192,7 @@ end
 %     enom_mat(iind,:) = int( WRmat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
 % end
 int_time_stop = cputime;
-fprintf('Integration time:\t%.3g s\n', int_time_stop - int_time_start);
+fprintf('\t(%.3g s)\n', int_time_stop - int_time_start);
 %%
 
 denom_n = sum(denom_mat,1);
