@@ -1,4 +1,5 @@
 %% User input
+time_start = cputime;
 
 k_si = 130;
 k_ox = 1.38;
@@ -12,10 +13,15 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox];
+thickness_actual = [50, 5, 50, 5, 50, 5] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100];
+
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si];
@@ -203,7 +209,9 @@ gnom_n = gnum_n ./ denom_n;
 enom_n = enum_n ./ denom_n;
 
 %%
-fprintf('Constructing final functions...\n');
+fprintf('Constructing final functions...');
+func_time_start = cputime;
+
 syms Fo;
 omega = 0;
 AN = enom_n .* ( omega^2 ./ (omega^2 + roots_vec.^4) - 1) - gnom_n./roots_vec.^2;
@@ -227,11 +235,16 @@ theta4 = sum(thetafunc3sin .* limfunc);
 
 theta5 = matlabFunction(theta4);
 
+func_time_stop = cputime;
+fprintf('\t(%.3g s)\n', func_time_stop - func_time_start);
+
 %%
 theta = @(x,t) theta5(alpha(1)*t/x_actual(1)^2, x);
 
 xvec = linspace(0, 0.99*max(eta_vec), 1e3);
 
+time_stop = cputime;
+fprintf('Total elapsed time: %.3g\n', time_stop - time_start)
 
 %% 
 
