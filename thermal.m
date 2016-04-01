@@ -13,10 +13,10 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox];
-thickness_actual = [50, 5, 50, 5, 50, 5] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
