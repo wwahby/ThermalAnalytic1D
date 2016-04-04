@@ -13,20 +13,20 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
 % thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0];
 
-alpha = [alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0];
+% alpha = [alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0];
 
 h_actual = [h_air, h_package];
 
@@ -52,7 +52,11 @@ eta_vec = x_actual./x_actual(1);
 b_vec = alpha ./ alpha(1);
 g_vec = b_vec .* x_actual(1)^2 .* pdens_m3./ k_actual  / dTR;
 
-%% Symbolic stuff
+%% Symbolic stuff - -Construct basis functions
+
+fprintf('Constructing Matrix...');
+mat_start = cputime;
+
 syms a x b;
 
 phis = cos(a*x/sqrt(b));
@@ -71,39 +75,73 @@ P = @(n, eta, a, b_vec) [ zeros(1, 2*(n-1)), phi(eta(n), a, b_vec(n)), psi(eta(n
 Q = @(n, eta, a, b_vec, k_vec) [ zeros(1, 2*(n-1)), dphi(eta(n), a, b_vec(n)), dpsi(eta(n), a, b_vec(n)), -k_vec(n)*dphi( eta(n), a, b_vec(n+1) ), -k_vec(n)*dpsi( eta(n), a, b_vec(n+1) ), zeros(1, 2*(num_layers-n-1)) ];
 PM = [ zeros(1, 2*(num_layers-1)), dphi(eta_vec(end), a, b_vec(end))/hM + phi(eta_vec(end), a, b_vec(end)), dpsi( eta_vec(end), a, b_vec(end))/hM + psi( eta_vec(end), a, b_vec(end))];
 
-%% Construct Matrix
-
+%% Build Matrix
 A = N1;
 for mind = 1:num_layers-1
         A = [A; P(mind, eta_vec, a, b_vec) ; Q(mind, eta_vec, a, b_vec, k_vec)];
 end
 A = [A; PM];
-%%
-detA = det(A);
 
+mat_stop = cputime;
+fprintf('\t(%.3g s)\n', mat_stop - mat_start);
+
+%% Construct Matrix
+
+fprintf('Taking determinant...');
+det_start = cputime;
+detA = det(vpa(A));
+
+det_stop = cputime;
+fprintf('\t(%.3g s)\n', det_stop - det_start);
+
+%% Alternate root method
+fprintf('Converting determinant...');
+det2_start = cputime;
+
+%detfunc = matlabFunction(detA);
+detstr = ['@(a) ', char(detA)]; % incredibly hacky way to quickly convert symbolic determinant into matlab function handle. matlabFunction takes FOREVER for long symbolics.
+detstr_a = strrep( detstr, '*', '.*');
+detstr_b = strrep(detstr_a, '^', '.^');
+detstr_c = strrep(detstr_b, '/', './');
+detfunc = str2func(detstr_c);
+
+det2_stop = cputime;
+fprintf('\t(%.3g s)\n', det2_stop - det2_start);
+%%
 fprintf('Finding roots...');
 roots_start = cputime;
-
-num_guesses = 3e1;
-min_guess = 0;
-max_guess = 5;
-roots_vec = -1*ones(1,num_guesses);
-init_guess_vec = linspace(min_guess, max_guess, num_guesses);
-for gind = 1:length(init_guess_vec)
-    if mod(gind, 5) == 0
-        fprintf('%d\t',gind)
-    end
-    guess = init_guess_vec(gind);
-    roots_vec(gind) = vpasolve(vpa(detA) == 0, a, guess);
-    %roots_vec(gind) = solve(detA == 0, a, guess);
-end
-fprintf('\n')
-
-roots_vec = roots_vec(roots_vec > 0);
-roots_vec = unique(roots_vec);
+bound_vec = [0,5];
+Npts = 3e2;
+roots_vec = find_all_roots_in_bounds_fzero(detfunc, bound_vec, Npts);
+roots_vec = unique( roots_vec(roots_vec > 0) );
 
 roots_stop = cputime;
 fprintf('\t(%.3g s)\n', roots_stop - roots_start);
+
+% %% Symbolic Root Finding Method (slow)
+% fprintf('Finding roots (slow)...');
+% roots_start = cputime;
+% 
+% num_guesses = 3e1;
+% min_guess = 0;
+% max_guess = 5;
+% roots_vec = -1*ones(1,num_guesses);
+% init_guess_vec = linspace(min_guess, max_guess, num_guesses);
+% for gind = 1:length(init_guess_vec)
+%     if mod(gind, 5) == 0
+%         fprintf('%d\t',gind)
+%     end
+%     guess = init_guess_vec(gind);
+%     roots_vec(gind) = vpasolve(vpa(detA) == 0, a, guess);
+%     %roots_vec(gind) = solve(detA == 0, a, guess);
+% end
+% fprintf('\n')
+% 
+% roots_vec = roots_vec(roots_vec > 0);
+% roots_vec = unique(roots_vec);
+% 
+% roots_stop = cputime;
+% fprintf('\t(%.3g s)\n', roots_stop - roots_start);
 %%
 fprintf('Finding coefficients...');
 coeff_start = cputime;
@@ -244,7 +282,7 @@ theta = @(x,t) theta5(alpha(1)*t/x_actual(1)^2, x);
 xvec = linspace(0, 0.99*max(eta_vec), 1e3);
 
 time_stop = cputime;
-fprintf('Total elapsed time: %.3g\n', time_stop - time_start)
+fprintf('Total elapsed time: %.4g s\n', time_stop - time_start)
 
 %% 
 
