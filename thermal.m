@@ -193,15 +193,31 @@ wvec = Fvec./b_vec;
 p = 0;
 wfunc = (x^p*wvec)';
 
-WRmat = sym(zeros(num_layers,length(roots_vec)) );
-WR2mat = sym(zeros(num_layers,length(roots_vec)) );
-gWRmat = sym(zeros(num_layers,length(roots_vec)) );
+% WRmat = sym(zeros(num_layers,length(roots_vec)) );
+% WR2mat = sym(zeros(num_layers,length(roots_vec)) );
+% gWRmat = sym(zeros(num_layers,length(roots_vec)) );
+% 
+% for iind = 1:num_layers
+%     WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
+%     WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
+%     gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
+% end
+
+WRcell = cell(num_layers, length(roots_vec));
+WR2cell = cell(num_layers, length(roots_vec));
+gWRcell = cell(num_layers, length(roots_vec));
+R_cell = cell(num_layers, length(roots_vec));
+w_cell = cell(1,num_layers);
 
 for iind = 1:num_layers
-    WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
-    WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
-    gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
+    w_cell(iind) = @(x) x^p * wvec(iind);
+    for rind = 1:length(roots_vec)
+        R_cell(iind, rind) = str2func( ['@(x) ', char(R_vec(iind, rind)) ] );
+        
+        denom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*R_cell % .... [FIX] [WIP]
+    end
 end
+
 weighting_stop = cputime;
 fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
 
