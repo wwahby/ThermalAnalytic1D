@@ -13,15 +13,15 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si];
-% thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
-% pdens_cm2 = [0, 100, 0, 100, 0];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si];
@@ -102,16 +102,21 @@ det2_start = cputime;
 detstr = ['@(a) ', char(detA)]; % incredibly hacky way to quickly convert symbolic determinant into matlab function handle. matlabFunction takes FOREVER for long symbolics.
 detstr_a = strrep( detstr, '*', '.*');
 detstr_b = strrep(detstr_a, '^', '.^');
-detstr_c = strrep(detstr_b, '/', './');
+detstr_c = strrep(detstr_b, '/', './')
 detfunc = str2func(detstr_c);
+
+fid = fopen('test.txt', 'wt');
+fprintf(fid, detstr_c);
+fclose(fid)
 
 det2_stop = cputime;
 fprintf('\t(%.3g s)\n', det2_stop - det2_start);
 %%
 fprintf('Finding roots...');
 roots_start = cputime;
-bound_vec = [0,5];
+bound_vec = [0,10];
 Npts = 3e2;
+fprintf('\njust before...\n')
 roots_vec = find_all_roots_in_bounds_fzero(detfunc, bound_vec, Npts);
 roots_vec = unique( roots_vec(roots_vec > 0) );
 
@@ -191,17 +196,26 @@ Fvec = cumprod([1, k_vec]);
 wvec = Fvec./b_vec;
 
 p = 0;
-wfunc = (x^p*wvec)';
+wfunc = (x.^p*wvec)';
 
-% WRmat = sym(zeros(num_layers,length(roots_vec)) );
-% WR2mat = sym(zeros(num_layers,length(roots_vec)) );
-% gWRmat = sym(zeros(num_layers,length(roots_vec)) );
-% 
-% for iind = 1:num_layers
-%     WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
-%     WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
-%     gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
-% end
+WRmat = sym(zeros(num_layers,length(roots_vec)) );
+WR2mat = sym(zeros(num_layers,length(roots_vec)) );
+gWRmat = sym(zeros(num_layers,length(roots_vec)) );
+
+for iind = 1:num_layers
+    WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
+    WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
+    gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
+end
+
+weighting_stop = cputime;
+fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
+
+%% 
+fprintf('Integrating weighting vectors...');
+int_time_start = cputime;
+xmin_lim = [0 eta_vec(1:end-1)];
+xmax_lim = eta_vec;
 
 WRcell = cell(num_layers, length(roots_vec));
 WR2cell = cell(num_layers, length(roots_vec));
@@ -209,51 +223,29 @@ gWRcell = cell(num_layers, length(roots_vec));
 R_cell = cell(num_layers, length(roots_vec));
 w_cell = cell(1,num_layers);
 
+denom_mat = zeros(num_layers,length(roots_vec));
+gnom_mat = zeros(num_layers,length(roots_vec)) ;
+enom_mat = zeros(num_layers,length(roots_vec)) ;
+
 for iind = 1:num_layers
-    w_cell(iind) = @(x) x^p * wvec(iind);
+    w_cell{iind} = @(x) x.^p * wvec(iind);
     for rind = 1:length(roots_vec)
-        R_cell(iind, rind) = str2func( ['@(x) ', char(R_vec(iind, rind)) ] );
+        R_cell{iind, rind} = str2func( ['@(x) ', char(R_vec(iind, rind)) ] );
         
-        denom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*R_cell % .... [FIX] [WIP]
-    end
-end
-
-weighting_stop = cputime;
-fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
-
-%%
-fprintf('Integrating weighting vectors...');
-xmin_lim = [0 eta_vec(1:end-1)];
-xmax_lim = eta_vec;
-
-denom_mat = sym(zeros(num_layers,length(roots_vec)) );
-gnom_mat = sym(zeros(num_layers,length(roots_vec)) );
-enom_mat = sym(zeros(num_layers,length(roots_vec)) );
-
-int_time_start = cputime;
-% Numeric integration -- faster than symbolic
-for iind=1:num_layers
-    for rind = 1:length(roots_vec)
-        denom_mat(iind,rind) = integral( matlabFunction(WR2mat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
-        enom_mat(iind,rind) = integral( matlabFunction(WRmat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
+        denom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*(R_cell{iind, rind}(x).^2), xmin_lim(iind), xmax_lim(iind) );
+        enom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*(R_cell{iind, rind}(x)), xmin_lim(iind), xmax_lim(iind) );
         if g_vec(iind) > 0
-            gnom_mat(iind,rind) = integral( matlabFunction(gWRmat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
+            gnom_mat(iind,rind) = integral( @(x) g_vec(iind).*w_cell{iind}(x).*(R_cell{iind, rind}(x)), xmin_lim(iind), xmax_lim(iind) );
         else
             gnom_mat(iind,rind) = 0;
         end
-            
     end
 end
 
-% Symbolic integration -- ~7X slower than numerical integration
-% for iind=1:num_layers
-%     denom_mat(iind,:) = int( WR2mat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
-%     gnom_mat(iind,:) = int( gWRmat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
-%     enom_mat(iind,:) = int( WRmat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
-% end
+
 int_time_stop = cputime;
 fprintf('\t(%.3g s)\n', int_time_stop - int_time_start);
-%%
+
 
 denom_n = sum(denom_mat,1);
 gnum_n = sum(gnom_mat, 1);
@@ -261,6 +253,50 @@ enum_n = sum(enom_mat, 1);
 
 gnom_n = gnum_n ./ denom_n;
 enom_n = enum_n ./ denom_n;
+
+
+%%
+% fprintf('Integrating weighting vectors...');
+% int_time_start = cputime;
+% xmin_lim = [0 eta_vec(1:end-1)];
+% xmax_lim = eta_vec;
+% 
+% denom_mat = sym(zeros(num_layers,length(roots_vec)) );
+% gnom_mat = sym(zeros(num_layers,length(roots_vec)) );
+% enom_mat = sym(zeros(num_layers,length(roots_vec)) );
+% 
+% 
+% % Numeric integration -- faster than symbolic
+% for iind=1:num_layers
+%     for rind = 1:length(roots_vec)
+%         denom_mat(iind,rind) = integral( matlabFunction(WR2mat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
+%         enom_mat(iind,rind) = integral( matlabFunction(WRmat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
+%         if g_vec(iind) > 0
+%             gnom_mat(iind,rind) = integral( matlabFunction(gWRmat(iind,rind)), xmin_lim(iind), xmax_lim(iind));
+%         else
+%             gnom_mat(iind,rind) = 0;
+%         end
+%             
+%     end
+% end
+% 
+% % Symbolic integration -- ~7X slower than numerical integration
+% % for iind=1:num_layers
+% %     denom_mat(iind,:) = int( WR2mat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
+% %     gnom_mat(iind,:) = int( gWRmat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
+% %     enom_mat(iind,:) = int( WRmat(iind,:), x, [xmin_lim(iind), xmax_lim(iind)]);
+% % end
+% int_time_stop = cputime;
+% fprintf('\t(%.3g s)\n', int_time_stop - int_time_start);
+% 
+% double(gnom_mat)
+% 
+% denom_n = sum(denom_mat,1);
+% gnum_n = sum(gnom_mat, 1);
+% enum_n = sum(enom_mat, 1);
+% 
+% gnom_n = gnum_n ./ denom_n;
+% enom_n = enum_n ./ denom_n;
 
 %%
 fprintf('Constructing final functions...');
