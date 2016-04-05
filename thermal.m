@@ -13,10 +13,23 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
+
+% too big -- det conversion fails because of excessive { [ ( nesting in
+% str2func. "Error: Nesting of {, [, and ( cannot exceed a depth of 32."
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0];
+
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100];
+
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 200, 0, 100, 0, 50, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
@@ -87,10 +100,18 @@ fprintf('\t(%.3g s)\n', mat_stop - mat_start);
 
 %% Construct Matrix
 
+% fprintf('Taking determinant...');
+% det_start = cputime;
+% detA = det(vpa(A));
+% 
+% det_stop = cputime;
+% fprintf('\t(%.3g s)\n', det_stop - det_start);
+
+%% alt det -- 50X faster
 fprintf('Taking determinant...');
 det_start = cputime;
-detA = det(vpa(A));
-
+[L, U, P] = lu(vpa(A));
+detA = det(P^-1)*prod(diag(L))*prod(diag(U)); % using the fact that det(AB) = det(A)*det(B) and the fact that det(triangular matrix) = prod(diagonal entries)
 det_stop = cputime;
 fprintf('\t(%.3g s)\n', det_stop - det_start);
 
@@ -114,7 +135,7 @@ fprintf('\t(%.3g s)\n', det2_stop - det2_start);
 %%
 fprintf('Finding roots...');
 roots_start = cputime;
-bound_vec = [0,10];
+bound_vec = [1e-30,10]; % have to use something greater than zero because the LU determinant method gives us something with a NaN at precisely zero, but matches everywhere else (and is 50X faster)
 Npts = 3e2;
 roots_vec = find_all_roots_in_bounds_fzero(detfunc, bound_vec, Npts);
 roots_vec = unique( roots_vec(roots_vec > 0) );
