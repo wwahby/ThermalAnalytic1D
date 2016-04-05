@@ -102,12 +102,12 @@ det2_start = cputime;
 detstr = ['@(a) ', char(detA)]; % incredibly hacky way to quickly convert symbolic determinant into matlab function handle. matlabFunction takes FOREVER for long symbolics.
 detstr_a = strrep( detstr, '*', '.*');
 detstr_b = strrep(detstr_a, '^', '.^');
-detstr_c = strrep(detstr_b, '/', './')
+detstr_c = strrep(detstr_b, '/', './');
 detfunc = str2func(detstr_c);
 
-fid = fopen('test.txt', 'wt');
-fprintf(fid, detstr_c);
-fclose(fid)
+% fid = fopen('test.txt', 'wt');
+% fprintf(fid, detstr_c);
+% fclose(fid);
 
 det2_stop = cputime;
 fprintf('\t(%.3g s)\n', det2_stop - det2_start);
