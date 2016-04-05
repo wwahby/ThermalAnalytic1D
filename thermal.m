@@ -98,16 +98,16 @@ A = [A; PM];
 mat_stop = cputime;
 fprintf('\t(%.3g s)\n', mat_stop - mat_start);
 
-%% Construct Matrix
-
-% fprintf('Taking determinant...');
+%% Take determinant
+% 
+% fprintf('Taking determinant (slow)...');
 % det_start = cputime;
 % detA = det(vpa(A));
 % 
 % det_stop = cputime;
 % fprintf('\t(%.3g s)\n', det_stop - det_start);
 
-%% alt det -- 50X faster
+%% Take determinant -- alt det -- 50X faster
 fprintf('Taking determinant...');
 det_start = cputime;
 [L, U, P] = lu(vpa(A));
