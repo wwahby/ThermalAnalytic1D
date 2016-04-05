@@ -13,15 +13,15 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0];
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si];
@@ -116,7 +116,6 @@ fprintf('Finding roots...');
 roots_start = cputime;
 bound_vec = [0,10];
 Npts = 3e2;
-fprintf('\njust before...\n')
 roots_vec = find_all_roots_in_bounds_fzero(detfunc, bound_vec, Npts);
 roots_vec = unique( roots_vec(roots_vec > 0) );
 
