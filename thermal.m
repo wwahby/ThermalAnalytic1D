@@ -21,15 +21,15 @@ h_package = 5;
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0];
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100];
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100];
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-% pdens_cm2 = [0, 200, 0, 100, 0, 50, 0];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 200, 0, 100, 0, 50, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
@@ -115,24 +115,87 @@ detA = det(P^-1)*prod(diag(L))*prod(diag(U)); % using the fact that det(AB) = de
 det_stop = cputime;
 fprintf('\t(%.3g s)\n', det_stop - det_start);
 
-%% Alternate root method
-fprintf('Converting determinant...');
-det2_start = cputime;
 
-%detfunc = matlabFunction(detA);
+%% Alternate determinant + conversion method
+% Need to do this because str2func fails when nested { ( [ level exceeds 32
+% fprintf('Converting determinant (alt)...');
+% det2_start = cputime;
+% 
+% diagL = diag(L);
+% diagU = diag(U);
+% detPinv = det(P^-1);
+% 
+% cell_L = cell(1,length(diagL));
+% cell_U = cell(1,length(diagU));
+% cell_P = cell(1,length(detPinv));
+% 
+% func_L = cell(1,length(diagL));
+% func_U = cell(1,length(diagU));
+% % func_P = cell(1,length(detPinv));
+% 
+% for iind = 1:length(diagL)
+%     cell_L{iind} = convert_strfunc_for_func( ['@(a) ', char(diagL(iind))] );
+%     cell_U{iind} = convert_strfunc_for_func( ['@(a) ', char(diagU(iind))] );
+%     %cell_P{iind} = convert_strfunc_for_func( ['@(a) ', char(detPinv(iind))] )
+%     
+%     func_L{iind} = str2func( cell_L{iind} );
+%     func_U{iind} = str2func( cell_U{iind} );
+%     %func_P{iind} = str2func( cell_P{iind} );
+% end
+% 
+% detstr_tot_cell = cell(1,length(diagL)+1);
+% Lstr_cell = cell(1,length(diagL)+1);
+% Ustr_cell = cell(1,length(diagL)+1);
+% 
+% detstr_tot_cell{1} = '@(a) ';
+% Lstr_cell{1} = '@(a) 1';
+% Ustr_cell{1} = '@(a) 1';
+% 
+% for iind = 1:length(diagL)
+%     Lstr_cell{iind+1} = sprintf('.* func_L{%d}(a)',iind);
+%     Ustr_cell{iind+1} = sprintf('.* func_U{%d}(a)',iind);
+% %     detstr_tot_cell{iind+1} = ['+ ', sprintf('func_L{%d}(a).*func_U{%d}(a)',iind, iind)];
+% end
+% Lstr_tot = strjoin(Lstr_cell);
+% Ustr_tot = strjoin(Ustr_cell);
+% Lprod_func = str2func(Lstr_tot);
+% Uprod_func = str2func(Ustr_tot);
+% 
+% detfunc = @(a) detPinv.* Lprod_func(a).*Uprod_func(a);
+% % detstr_tot = strjoin(detstr_tot_cell);
+% % detfunc2 = str2func(detstr_tot);
+% 
+% det2_stop = cputime;
+% fprintf('\t(%.3g s)\n', det2_stop - det2_start);
+    
+
+%% Convert determinant
+% fprintf('Converting determinant...');
+% det2_start = cputime;
+% 
+% detstr = ['@(a) ', char(detA)]; % incredibly hacky way to quickly convert symbolic determinant into matlab function handle. matlabFunction takes FOREVER for long symbolics.
+% detstr_a = strrep( detstr, '*', '.*');
+% detstr_b = strrep(detstr_a, '^', '.^');
+% detstr_c = strrep(detstr_b, '/', './');
+% 
+% detfunc = str2func(detstr_c);
+% 
+% det2_stop = cputime;
+% fprintf('\t(%.3g s)\n', det2_stop - det2_start);
+
+%% Third alternate determinant conversion method
+fprintf('Converting determinant (eval)...');
+det3_start = cputime;
 detstr = ['@(a) ', char(detA)]; % incredibly hacky way to quickly convert symbolic determinant into matlab function handle. matlabFunction takes FOREVER for long symbolics.
 detstr_a = strrep( detstr, '*', '.*');
 detstr_b = strrep(detstr_a, '^', '.^');
 detstr_c = strrep(detstr_b, '/', './');
-detfunc = str2func(detstr_c);
 
-% fid = fopen('test.txt', 'wt');
-% fprintf(fid, detstr_c);
-% fclose(fid);
+detfunc = eval(detstr_c);
+det3_stop = cputime;
+fprintf('\t(%.3g s)\n', det3_stop - det3_start);
 
-det2_stop = cputime;
-fprintf('\t(%.3g s)\n', det2_stop - det2_start);
-%%
+%% Alternate root method
 fprintf('Finding roots...');
 roots_start = cputime;
 bound_vec = [1e-30,10]; % have to use something greater than zero because the LU determinant method gives us something with a NaN at precisely zero, but matches everywhere else (and is 50X faster)
