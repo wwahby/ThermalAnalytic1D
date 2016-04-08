@@ -26,20 +26,20 @@ h_package = 5;
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100];
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 200, 0, 100, 0, 50, 0];
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 200, 0, 100, 0, 50, 0];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
 % thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0];
 
-% alpha = [alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si];
-% thickness_actual = [50, 5, 50] * 1e-6;
-% pdens_cm2 = [0, 100, 0];
+alpha = [alpha_si, alpha_ox, alpha_si];
+k_actual = [k_si, k_ox, k_si];
+thickness_actual = [50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0];
 
 h_actual = [h_air, h_package];
 
