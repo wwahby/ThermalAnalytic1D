@@ -13,7 +13,7 @@ if (~isempty(all_inds))
         start_ind = start_inds(ff);
         stop_ind = stop_inds(ff);
         
-        func_cell{ff} = str2func( ['@(a) ', old_str(start_ind:stop_ind) ]);
+        func_cell{ff} = eval( ['@(a) ', old_str(start_ind:stop_ind) ]); % can't use str2func for this after 2015a
 
         str_cell{2*ff} = sprintf('( func_cell{%d}(a) )', ff);
         if ff > 1
@@ -25,7 +25,7 @@ if (~isempty(all_inds))
     str_cell{end} = old_str(stop_inds(end)+1:end);
 
     newstr = strjoin(str_cell);
-    newfunc = str2func(newstr);
+    newfunc = eval(newstr); % can't use str2func for this after 2015a
 else
     newstr = old_str;
     newfunc = str2func(newstr);
