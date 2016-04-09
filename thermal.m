@@ -419,7 +419,7 @@ theta = @(x,t) theta5(alpha(1)*t/x_actual(1)^2, x);
 xvec = linspace(0, 0.99*max(eta_vec), 1e3);
 
 time_stop = cputime;
-fprintf('Total elapsed time: %.4g s (%.4g m)\n', time_stop - time_start, (time_stop - time_stop)/60)
+fprintf('Total elapsed time: %.4g s (%.4g m)\n', time_stop - time_start, (time_stop - time_start)/60)
 
 %% 
 
