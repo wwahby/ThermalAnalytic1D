@@ -17,10 +17,10 @@ h_water = 4.6e4;
 h_package = 5;
 
 
-alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
+% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
+% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
 
 % too big -- det conversion fails because of excessive { [ ( nesting in
 % str2func. "Error: Nesting of {, [, and ( cannot exceed a depth of 32."
@@ -39,10 +39,10 @@ pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox];
-% thickness_actual = [50, 5, 50, 5, 50, 5] * 1e-6;
-% pdens_cm2 = [0, 100, 0, 100, 0, 100];
+alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
+k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox];
+thickness_actual = [50, 5, 50, 5, 50, 5] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100];
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
 % k_actual = [k_si, k_ox, k_si, k_ox, k_si];
@@ -428,13 +428,18 @@ theta4 = sum(thetafunc3sin .* limfunc);
 
 theta5 = matlabFunction(theta4);
 
+theta = @(x,t) theta5(alpha(1)*t/x_actual(1)^2, x);
+
 func_time_stop = cputime;
 fprintf('\t(%.3g s)\n', func_time_stop - func_time_start);
 
 %%
-theta = @(x,t) theta5(alpha(1)*t/x_actual(1)^2, x);
-
 xvec = linspace(0, 0.99*max(eta_vec), 1e3);
+tvec = logspace(-6,0,1e3);
+dt_max = zeros(1,length(tvec));
+for tind = 1:length(tvec)
+    dt_max(tind) = max(theta(xvec, tvec(tind)));
+end
 
 time_stop = cputime;
 fprintf('Total elapsed time: %.4g s (%.4g m)\n', time_stop - time_start, (time_stop - time_start)/60)
@@ -460,3 +465,12 @@ plot(xvec, theta(xvec, 1e-2))
 plot(xvec, theta(xvec, 1e-1))
 xlim([0 max(eta_vec)])
 fixfigs(2,3,14,12)
+
+figure(3)
+clf
+hold on
+plot(tvec, dt_max)
+xlabel('Time (s)')
+ylabel('Maximum \DeltaT')
+set(gca,'xscale','log')
+fixfigs(3,3,14,12)
