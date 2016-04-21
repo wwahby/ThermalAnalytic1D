@@ -144,15 +144,15 @@ wvec = Fvec./b_vec;
 p = 0;
 wfunc = (x.^p*wvec)';
 
-WRmat = sym(zeros(num_layers,length(roots_vec)) );
-WR2mat = sym(zeros(num_layers,length(roots_vec)) );
-gWRmat = sym(zeros(num_layers,length(roots_vec)) );
-
-for iind = 1:num_layers
-    WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
-    WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
-    gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
-end
+% WRmat = sym(zeros(num_layers,length(roots_vec)) );
+% WR2mat = sym(zeros(num_layers,length(roots_vec)) );
+% gWRmat = sym(zeros(num_layers,length(roots_vec)) );
+% 
+% for iind = 1:num_layers
+%     WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
+%     WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
+%     gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
+% end
 
 weighting_stop = cputime;
 fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
@@ -203,7 +203,7 @@ func_time_start = cputime;
 
 syms Fo;
 omega = 0;
-AN = enom_n .* ( omega^2 ./ (omega^2 + roots_vec.^4) - 1) - gnom_n./roots_vec.^2;
+%AN = enom_n .* ( omega^2 ./ (omega^2 + roots_vec.^4) - 1) - gnom_n./roots_vec.^2;
 ANsin = enom_n .* (omega * roots_vec.^2 ./ (omega^2 + roots_vec.^4)) - gnom_n./roots_vec.^2;
 ANsinterm = ANsin.*exp(-roots_vec.^2 * Fo);
 ENsinterm = enom_n .* ((omega^2*sin(omega*Fo) + roots_vec.^2*omega*cos(omega*Fo))/(omega^2 + roots_vec.^4) );
