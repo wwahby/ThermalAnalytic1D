@@ -20,7 +20,7 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-h_actual = [h_air, h_air];
+h_actual = [h_air, h_package];
 
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
@@ -60,12 +60,21 @@ h_actual = [h_air, h_air];
 % thickness_actual = [50, 5, 50, 5] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100];
 % power_functions = { @(x) 0, @(x) x, @(x) 0, @(x) x};
+% 
+% alpha = [alpha_si, alpha_ox, alpha_si];
+% k_actual = [k_si, k_ox, k_si];
+% thickness_actual = [50, 5, 50] * 1e-6;
+% pdens_cm2 = [0, 100, 0];
+% power_functions = {scalar_zero_func, scalar_func, scalar_zero_func};
 
-alpha = [alpha_si, alpha_ox, alpha_si];
-k_actual = [k_si, k_ox, k_si];
-thickness_actual = [50, 5, 50] * 1e-6;
-pdens_cm2 = [0, 100, 0];
-power_functions = {scalar_zero_func, scalar_func, scalar_zero_func};
+alpha = [alpha_cu, alpha_cu, alpha_cu];
+k_actual = [k_cu, k_cu, k_cu];
+thickness_actual = [10, 5, 5] * 1e-6;
+p3 = [20e9, 20e9, 400e9];
+p2 = thickness_actual .* p3/1e4;
+%pdens_cm2 = [2000, 100, 1800];
+pdens_cm2 = p2;
+power_functions = {scalar_func, scalar_func, scalar_func};
 
 
 % alpha = [alpha_si];
