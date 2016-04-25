@@ -1,4 +1,4 @@
-function [theta, eta_vec, A] = construct_thermal_function_cartesian(alpha, k, thicknesses, pdens_cm2, h)
+function [theta, eta_vec, A, normalized_power_functions] = construct_thermal_function_cartesian(alpha, k, thicknesses, pdens_cm2, power_functions, h)
 time_start = cputime;
 
 thickness_actual = thicknesses;
@@ -13,8 +13,8 @@ x_actual = cumsum(thickness_actual);
 dx = [ x_actual(1) diff(x_actual)];
 
 % Construct useful constants
-pdens_m2 = pdens_cm2 * 1e4;
-pdens_m3 = pdens_m2 ./ dx;
+% pdens_m2 = pdens_cm2 * 1e4;
+% pdens_m3 = pdens_m2 ./ dx;
 hM = h_actual(end) * x_actual(1)/k_actual(end);
 h1 = h_actual(1) * x_actual(1)/k_actual(1);
 
@@ -24,7 +24,20 @@ num_layers = length(alpha);
 k_vec = k_actual(2:end)./k_actual(1:end-1);
 eta_vec = x_actual./x_actual(1);
 b_vec = alpha ./ alpha(1);
-g_vec = b_vec .* x_actual(1)^2 .* pdens_m3./ k_actual  / dTR;
+% g_vec = b_vec .* x_actual(1)^2 .* pdens_m3./ k_actual  / dTR;
+power_correction_vec = b_vec .*x_actual(1)^2 .* 1e4 ./k_actual /dTR;
+g_vec = power_correction_vec .* pdens_cm2;
+%g_func_cell = normalized_power_functions;
+
+% Normalize Power Functions
+normalized_power_functions = cell(1, length(power_functions));
+x1 = 0;
+for iind = 1:length(power_functions)
+    x2 = x_actual(iind);
+    norm_factor = integral( power_functions{iind}, x1, x2);
+    normalized_power_functions{iind} = @(eta) 1/norm_factor * power_functions{iind}(eta * x_actual(1) );
+    x1 = x2;
+end
 
 %% Symbolic stuff - -Construct basis functions
 
@@ -44,10 +57,20 @@ psi = @(xx, aa, bb) subs(psis, [x, a, b], [xx, aa, bb]);
 dphi = @(xx, aa, bb) subs(dphis, [x, a, b], [xx, aa, bb]);
 dpsi = @(xx, aa, bb) subs(dpsis, [x, a, b], [xx, aa, bb]);
 
-N1 = [ -dphi(0, a, b_vec(1))/h1 + phi(0, a, b_vec(1)), -dpsi(0, a, b_vec(1))/h1 + psi(0, a, b_vec(1)), zeros(1,2*(num_layers-1)) ];
+if h1 ~= 0
+    N1 = [ -dphi(0, a, b_vec(1))/h1 + phi(0, a, b_vec(1)), -dpsi(0, a, b_vec(1))/h1 + psi(0, a, b_vec(1)), zeros(1,2*(num_layers-1)) ];
+else
+    N1 = [ -dphi(0, a, b_vec(1)), -dpsi(0, a, b_vec(1)), zeros(1,2*(num_layers-1)) ];
+end
+    
 P = @(n, eta, a, b_vec) [ zeros(1, 2*(n-1)), phi(eta(n), a, b_vec(n)), psi(eta(n), a, b_vec(n)), -phi( eta(n), a, b_vec(n+1) ), -psi( eta(n), a, b_vec(n+1) ), zeros(1, 2*(num_layers-n-1)) ];
 Q = @(n, eta, a, b_vec, k_vec) [ zeros(1, 2*(n-1)), dphi(eta(n), a, b_vec(n)), dpsi(eta(n), a, b_vec(n)), -k_vec(n)*dphi( eta(n), a, b_vec(n+1) ), -k_vec(n)*dpsi( eta(n), a, b_vec(n+1) ), zeros(1, 2*(num_layers-n-1)) ];
-PM = [ zeros(1, 2*(num_layers-1)), dphi(eta_vec(end), a, b_vec(end))/hM + phi(eta_vec(end), a, b_vec(end)), dpsi( eta_vec(end), a, b_vec(end))/hM + psi( eta_vec(end), a, b_vec(end))];
+if hM ~=0
+    PM = [ zeros(1, 2*(num_layers-1)), dphi(eta_vec(end), a, b_vec(end))/hM + phi(eta_vec(end), a, b_vec(end)), dpsi( eta_vec(end), a, b_vec(end))/hM + psi( eta_vec(end), a, b_vec(end))];
+else
+    PM = [ zeros(1, 2*(num_layers-1)), dphi(eta_vec(end), a, b_vec(end)), dpsi( eta_vec(end), a, b_vec(end))];
+end
+    
 
 %% Build Matrix
 A = N1;
@@ -136,26 +159,10 @@ basis_stop = cputime;
 fprintf('\t(%.3g s)\n', basis_stop - basis_start);
 
 %%
-fprintf('Constructing weighting vectors...\t');
-weighting_start = cputime;
 Fvec = cumprod([1, k_vec]);
 wvec = Fvec./b_vec;
 
-p = 0;
-wfunc = (x.^p*wvec)';
-
-% WRmat = sym(zeros(num_layers,length(roots_vec)) );
-% WR2mat = sym(zeros(num_layers,length(roots_vec)) );
-% gWRmat = sym(zeros(num_layers,length(roots_vec)) );
-% 
-% for iind = 1:num_layers
-%     WRmat(iind,:) = wfunc(iind).*R_vec(iind,:);
-%     WR2mat(iind,:) = wfunc(iind).*(R_vec(iind,:).^2);
-%     gWRmat(iind,:) = wfunc(iind).*g_vec(iind).*R_vec(iind,:);
-% end
-
-weighting_stop = cputime;
-fprintf('\t(%.3g s)\n', weighting_stop - weighting_start);
+% p = 0;
 
 %% 
 fprintf('Integrating weighting vectors...');
@@ -178,7 +185,7 @@ for iind = 1:num_layers
         denom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*(R_cell{iind, rind}(x).^2), xmin_lim(iind), xmax_lim(iind) );
         enom_mat(iind,rind) = integral( @(x) w_cell{iind}(x).*(R_cell{iind, rind}(x)), xmin_lim(iind), xmax_lim(iind) );
         if g_vec(iind) > 0
-            gnom_mat(iind,rind) = integral( @(x) g_vec(iind).*w_cell{iind}(x).*(R_cell{iind, rind}(x)), xmin_lim(iind), xmax_lim(iind) );
+            gnom_mat(iind,rind) = integral( @(x) g_vec(iind).* normalized_power_functions{iind}(x) .* w_cell{iind}(x).*(R_cell{iind, rind}(x)), xmin_lim(iind), xmax_lim(iind) );
         else
             gnom_mat(iind,rind) = 0;
         end
