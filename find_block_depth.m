@@ -1,15 +1,15 @@
 function [depths, block_opens, block_closes] = find_block_depth(funcstr)
 %%
-fprintf('\tCounting parens...')
-ta = cputime;
+% fprintf('\tCounting parens...')
+% ta = cputime;
 aaa = strfind(funcstr, '(');
 bbb = strfind(funcstr, ')');
-tb = cputime;
-fprintf('\t%.3g s\t', tb- ta);
+% tb = cputime;
+% fprintf('\t%.3g s\t', tb- ta);
 
 %%
-fprintf('Making vectors...')
-ta = cputime;
+% fprintf('Making vectors...')
+% ta = cputime;
 block_opens = zeros(1,max(bbb));
 block_closes = zeros(1,max(bbb));
 for iind = 1:length(aaa)-1
@@ -18,8 +18,8 @@ for iind = 1:length(aaa)-1
 end
 block_opens(aaa(iind+1):end) = iind+1;
 block_closes(bbb(iind+1):end) = iind+1;
-tb = cputime;
-fprintf('\t%.3g s\t', tb- ta);
+% tb = cputime;
+% fprintf('\t%.3g s\t', tb- ta);
 
 %%
 depths = block_opens - block_closes;
