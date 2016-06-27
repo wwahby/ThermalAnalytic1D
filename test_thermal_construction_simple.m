@@ -26,55 +26,52 @@ h_package = 5;
 
 h_actual = [h_air, h_air];
 
+materials = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
+thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
+pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
+dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
-% thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
-% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
-
-% too big -- det conversion fails because of excessive { [ ( nesting in
+% too big for normal conversion -- det conversion fails because of excessive { [ ( nesting in
 % str2func. "Error: Nesting of {, [, and ( cannot exceed a depth of 32."
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% materials = [1, 2, 1, 2, 1, 2, 1, 2, 1];
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0];
+% dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si, k_ox];
+% materials = [1, 2, 1, 2, 1, 2, 1, 2];
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100];
+% dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox, k_si];
+% materials = [1, 2, 1, 2, 1, 2, 1];
 % thickness_actual = [50, 5, 50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100, 0];
+% dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si, k_ox];
+% materials = [1, 2, 1, 2, 1, 2];
 % thickness_actual = [50, 5, 50, 5, 50, 5] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0, 100];
+% dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si, k_ox, k_si];
+% materials = [1, 2, 1, 2, 1];
 % thickness_actual = [50, 5, 50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100, 0];
+% dimensions = 1;
 
-% alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox];
-% k_actual = [k_si, k_ox, k_si, k_ox];
+% materials = [1, 2, 1, 2];
 % thickness_actual = [50, 5, 50, 5] * 1e-6;
 % pdens_cm2 = [0, 100, 0, 100];
-% power_functions = { @(x) 0, @(x) x, @(x) 0, @(x) x};
-% 
-% alpha = [alpha_si, alpha_ox, alpha_si];
-% k_actual = [k_si, k_ox, k_si];
+% dimensions = 1;
+ 
+% materials = [1, 2, 1];
 % thickness_actual = [50, 5, 50] * 1e-6;
 % pdens_cm2 = [0, 100, 0];
-% power_functions = {scalar_zero_func, scalar_func, scalar_zero_func};
+% dimensions = 1;
 
-materials = [3, 2, 1]; % cu, ox, si
-thickness_actual = [8, 0.1, 50] * 1e-6;
-pdens_cm2 = [100, 0, 0];
-dimensions = 2;
+% materials = [3, 2, 1]; % cu, ox, si
+% thickness_actual = [8, 0.1, 50] * 1e-6;
+% pdens_cm2 = [100, 0, 0];
+% dimensions = 2;
 
 
 %% Setup
