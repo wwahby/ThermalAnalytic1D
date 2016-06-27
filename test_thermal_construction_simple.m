@@ -16,11 +16,15 @@ alpha_si = k_si/2329/700;
 alpha_ox = k_ox/2203/703;
 alpha_cu = 1.11e-4;
 
+% Materials: % Si, Ox, Cu
+material_alphas = [alpha_si, alpha_ox, alpha_cu];
+material_thermal_conds = [k_si, k_ox, k_cu];
+
 h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-h_actual = [h_air, h_package];
+h_actual = [h_air, h_air];
 
 
 % alpha = [alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox, alpha_si, alpha_ox];
@@ -67,29 +71,27 @@ h_actual = [h_air, h_package];
 % pdens_cm2 = [0, 100, 0];
 % power_functions = {scalar_zero_func, scalar_func, scalar_zero_func};
 
-alpha = [alpha_cu, alpha_cu, alpha_cu];
-k_actual = [k_cu, k_cu, k_cu];
-thickness_actual = [10, 5, 5] * 1e-6;
-p3 = [20e9, 20e9, 400e9];
-p2 = thickness_actual .* p3/1e4;
-%pdens_cm2 = [2000, 100, 1800];
-pdens_cm2 = p2;
-power_functions = {scalar_func, scalar_func, scalar_func};
+materials = [3, 2, 1]; % cu, ox, si
+thickness_actual = [8, 0.1, 50] * 1e-6;
+pdens_cm2 = [100, 0, 0];
+dimensions = 2;
 
 
-% alpha = [alpha_si];
-% k_actual = [k_si];
-% thickness_actual = [20] * 1e-6;
-% pdens_cm2 = [20];
-% power_functions = { @(x) 1 + 100*(x>15e-6)};
+%% Setup
+power_functions = cell(1,length(pdens_cm2) );
+for pind = 1:length(pdens_cm2)
+    if (pdens_cm2(pind) > 0)
+        power_functions{pind} = scalar_func;
+    else
+        power_functions{pind} = scalar_zero_func;
+    end
+end
+
+alpha = material_alphas(materials);
+k_actual = material_thermal_conds(materials);
 
 
-
-dTR = 1;
-
-dimensions = 1;
-%[theta, eta_vec, ~, normalized_power_functions] = construct_thermal_function_cartesian(alpha, k_actual, thickness_actual, pdens_cm2, power_functions, h_actual);
-[theta, eta_vec, ~, normalized_power_functions] = construct_thermal_function(alpha, k_actual, thickness_actual, pdens_cm2, power_functions, h_actual,dimensions);
+[theta, eta_vec, ~, normalized_power_functions] = construct_thermal_function(alpha, k_actual, thickness_actual, pdens_cm2, power_functions, h_actual, dimensions);
 
 %%
 xvec = linspace(0, 0.999*max(eta_vec), 1e3);
