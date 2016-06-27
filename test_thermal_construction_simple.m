@@ -24,12 +24,12 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-h_actual = [h_air, h_air];
+h_actual = [h_package, h_air];
 
-materials = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
-thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
-pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
-dimensions = 1;
+% materials = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
+% thickness_actual = [50, 5, 50, 5, 50, 5, 50, 5, 50, 5] * 1e-6;
+% pdens_cm2 = [0, 100, 0, 100, 0, 100, 0, 100, 0, 100];
+% dimensions = 1;
 
 % too big for normal conversion -- det conversion fails because of excessive { [ ( nesting in
 % str2func. "Error: Nesting of {, [, and ( cannot exceed a depth of 32."
@@ -74,6 +74,21 @@ dimensions = 1;
 % dimensions = 2;
 
 
+materials = [1, 2, 3];
+thickness_actual = [50, 5, 50] * 1e-6;
+pdens_cm2 = [0, 100, 0];
+dimensions = 1;
+
+materials = [2, 1, 2, 1];
+thickness_actual = [5, 1, 5, 50] * 1e-6;
+pdens_cm2 = [60, 0, 60, 0];
+dimensions = 1;
+
+% materials = [2, 1, 2, 1, 2, 1];
+% thickness_actual = [5, 1, 5, 1, 5, 50] * 1e-6;
+% pdens_cm2 = [75, 0, 75, 0, 75, 0];
+% dimensions = 1;
+
 %% Setup
 power_functions = cell(1,length(pdens_cm2) );
 for pind = 1:length(pdens_cm2)
@@ -109,8 +124,28 @@ clf
 hold on
 plot(xvec, theta(xvec, 1e-3))
 plot(xvec, theta(xvec, 1e-2))
+plot(xvec, theta(xvec, 2e-2))
+plot(xvec, theta(xvec, 4e-2))
 plot(xvec, theta(xvec, 1e-1))
 xlim([0 max(eta_vec)])
 xlabel('Normalized Position (-)')
 ylabel('\DeltaT (K)')
 fixfigs(2,3,14,12)
+
+tvec = logspace(-6,-1,5e1);
+tmax = zeros(1, length(tvec));
+for tind = 1:length(tvec)
+    tmax(tind) = max(theta(xvec, tvec(tind)) );
+end
+
+figure(3)
+clf
+hold on
+plot(tvec, tmax)
+set(gca, 'yscale','log')
+set(gca, 'xscale','log')
+xlabel('time (s)')
+ylabel('\DeltaT (K)')
+grid on
+fixfigs(3,3,14,12)
+    
