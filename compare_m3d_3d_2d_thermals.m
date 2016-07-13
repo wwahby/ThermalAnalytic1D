@@ -25,7 +25,7 @@ h_air = 1.8e4;
 h_water = 4.6e4;
 h_package = 5;
 
-tvec = logspace(-6,-1,1e2);
+tvec = logspace(-6,-1,5e2);
 tlimit = 70;
 
 h_actual = [h_package, h_air];
@@ -54,7 +54,8 @@ time_to_limit_2d = tvec(time_ind);
 %% 3DIC
 
 tiers = [2, 3, 4];
-pdens_cm2_logic = [65, 75, 85];
+%pdens_cm2_logic = [65, 75, 85];
+pdens_cm2_logic = (100 + tiers*300/8)./tiers;
 thickness_ox = 5e-6;
 thickness_si = 50e-6;
 
@@ -96,7 +97,7 @@ end
 %% M3DIC
 
 tiers = [2, 3, 4];
-pdens_cm2_logic = 100 + tiers*300/8;
+pdens_cm2_logic = (100 + tiers*300/8)./tiers;
 thickness_ox = 5e-6;
 thickness_si = 1e-6;
 thickness_si_bulk = 50e-6;
@@ -149,8 +150,11 @@ for tind = 1:length(tiers)
     plot(tvec, tmax_3dic(tind, :), 'color', colors{tind}, 'linestyle', '-')
     plot(tvec, tmax_m3dic(tind, :), 'color', colors{tind}, 'linestyle', '--')
 end
-set(gca, 'yscale','log')
+set(gca, 'yscale','lin')
 set(gca, 'xscale','log')
+ylim([0 180])
+ylim([0 70])
+xlim([1e-3 1e-1])
 xlabel('time (s)')
 ylabel('\DeltaT (K)')
 grid on
