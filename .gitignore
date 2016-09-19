@@ -81,6 +81,8 @@ Temporary Items
 #############
 *.pdf
 
+octave-workspace
+
 #############
 ## tagss
 #############

@@ -154,7 +154,7 @@ set(gca, 'yscale','lin')
 set(gca, 'xscale','log')
 ylim([0 180])
 ylim([0 70])
-xlim([1e-3 1e-1])
+xlim([1e-4 1e-1])
 xlabel('time (s)')
 ylabel('\DeltaT (K)')
 grid on
